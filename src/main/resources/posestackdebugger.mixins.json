@@ -1,0 +1,13 @@
+{  
+  "required": true,  
+  "minVersion": "0.8",  
+  "package": "deliciousbread481.posestackdebugger.mixin",  
+  "compatibilityLevel": "JAVA_17",  
+  "refmap": "posestackdebugger.refmap.json",  
+  "client": [  
+    "PoseStackMixin"  
+  ],  
+  "injectors": {  
+    "defaultRequire": 1
+  }  
+}

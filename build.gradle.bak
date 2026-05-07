@@ -1,0 +1,73 @@
+plugins {  
+    id 'eclipse'  
+    id 'idea'  
+    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'  
+    id 'org.spongepowered.mixin' version '0.7.+'  
+}  
+  
+version = '1.0.0'
+group = 'deliciousbread481.posestackdebugger'
+archivesBaseName = 'posestack-debugger'  
+  
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)  
+  
+minecraft {  
+    mappings channel: 'official', version: '1.20.1'  
+  
+    runs {  
+        client {  
+            workingDirectory project.file('run')  
+            property 'forge.logging.markers', 'REGISTRIES'  
+            property 'forge.logging.console.level', 'debug'  
+            property 'mixin.env.remapRefMap', 'true'  
+            property 'mixin.env.refMapRemappingFile', "${project.buildDir}/createSrgToMcp/output.srg"  
+            mods {  
+                posestackdebugger {  
+                    source sourceSets.main  
+                }  
+            }  
+        }  
+  
+        server {  
+            workingDirectory project.file('run')  
+            property 'forge.logging.markers', 'REGISTRIES'  
+            property 'forge.logging.console.level', 'debug'  
+            property 'mixin.env.remapRefMap', 'true'  
+            property 'mixin.env.refMapRemappingFile', "${project.buildDir}/createSrgToMcp/output.srg"  
+            mods {  
+                posestackdebugger {  
+                    source sourceSets.main  
+                }  
+            }  
+        }  
+    }  
+}  
+  
+mixin {  
+    add sourceSets.main, 'posestackdebugger.refmap.json'  
+    config 'posestackdebugger.mixins.json'  
+}  
+  
+repositories {  
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }  
+}  
+  
+dependencies {  
+    minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'  
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'  
+}  
+  
+jar {  
+    manifest {  
+        attributes([  
+            "Specification-Title"     : "posestack-debugger",  
+            "Specification-Vendor"    : "deliciousbread481",  
+            "Specification-Version"   : "1",  
+            "Implementation-Title"    : project.name,  
+            "Implementation-Version"  : project.jar.archiveVersion,  
+            "Implementation-Vendor"   : "deliciousbread481",  
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),  
+            "MixinConfigs"            : "posestackdebugger.mixins.json"  
+        ])  
+    }  
+}

@@ -1,0 +1,26 @@
+modLoader = "javafml"  
+loaderVersion = "[47,)"  
+license = "MIT"  
+  
+[[mods]]  
+modId = "posestackdebugger"  
+version = "1.0.0"  
+displayName = "PoseStack Debugger"  
+authors = "deliciousbread481"  
+description = '''  
+Monitors PoseStack pushPose/popPose calls to detect unbalanced usage and identify the offending mod.  
+'''  
+  
+[[dependencies.posestackdebugger]]  
+modId = "forge"  
+mandatory = true  
+versionRange = "[47,)"  
+ordering = "NONE"  
+side = "CLIENT"  
+  
+[[dependencies.posestackdebugger]]  
+modId = "minecraft"  
+mandatory = true  
+versionRange = "[1.20.1,1.21)"  
+ordering = "NONE"  
+side = "CLIENT"
