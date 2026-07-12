@@ -1,5 +1,9 @@
 package deliciousbread481.posestackdebugger;  
   
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent; 
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.fml.common.Mod;  
 import net.minecraftforge.fml.loading.FMLPaths;  
 import org.slf4j.Logger;  
@@ -16,11 +20,32 @@ public class PoseStackDebugger {
     public static final Logger LOGGER = LoggerFactory.getLogger("PoseStackDebugger");  
     private static final Object LOCK = new Object();  
     private static PrintWriter writer;  
+    
+    public static volatile int currentGuiDepth = 0;
+    private int snapshotDepth = 0;
   
     public PoseStackDebugger() {  
         LOGGER.info("[PoseStackDebugger] Loaded - monitoring pushPose/popPose balance.");  
-        initLogFile();  
+        initLogFile();     
+        MinecraftForge.EVENT_BUS.register(this);
     }  
+    
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onScreenRenderPre(ScreenEvent.Render.Pre e) {
+        snapshotDepth = currentGuiDepth;
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onScreenRenderPost(ScreenEvent.Render.Post e) {
+        int now = currentGuiDepth;
+        if (now != snapshotDepth) {
+            log("SCREEN IMBALANCE",
+                    "Screen " + e.getScreen().getClass().getName()
+                            + " 的 renderWithTooltip 导致深度变化: "
+                            + snapshotDepth + " -> " + now + "\n"
+                            + "（元凶是该 Screen 本体或包裹它的 mixin）\n");
+        }
+    }
   
     private static void initLogFile() {  
         try {  
