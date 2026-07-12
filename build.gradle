@@ -5,9 +5,9 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7.+'  
 }  
   
-version = '1.0.3'
+version = '1.0.4'
 group = 'deliciousbread481.posestackdebugger'
-archivesBaseName = 'posestack-debugger'  
+archivesBaseName = 'PoseStackDebugger'  
   
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)  
   

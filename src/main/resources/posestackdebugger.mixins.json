@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",  
   "refmap": "posestackdebugger.refmap.json",  
   "client": [  
-    "PoseStackMixin"  
+    "PoseStackMixin",
+    "ForgeHooksClientMixin"
   ],  
   "injectors": {  
     "defaultRequire": 1
