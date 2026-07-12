@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;  
   
 import java.io.*;  
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;  
 import java.time.LocalDateTime;  
 import java.time.format.DateTimeFormatter;  
@@ -21,6 +22,11 @@ public class PoseStackDebugger {
     private static final Object LOCK = new Object();  
     private static PrintWriter writer;  
     
+    private static final long MAX_LOG_BYTES = 20L * 1024 * 1024;
+    private static long writtenBytes = 0;
+    private static boolean capReached = false;
+    private static String lastSignature = null;
+    private static int duplicateCount = 0;
     public static volatile int currentGuiDepth = 0;
     public static volatile Object guiPoseStackInstance = null;
     private int snapshotDepth = 0;  
@@ -49,35 +55,63 @@ public class PoseStackDebugger {
         }
     }
   
-    private static void initLogFile() {  
-        try {  
-            Path logDir = FMLPaths.GAMEDIR.get().resolve("logs");  
-            File logFile = logDir.resolve("posestack-debugger.log").toFile();  
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)), true);  
-            writer.println("=== PoseStackDebugger session started at " +  
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " ===");  
-            writer.flush();  
-        } catch (IOException e) {  
-            LOGGER.error("[PoseStackDebugger] Failed to create log file!", e);  
-        }  
-    }  
+    private static void initLogFile() { 
+        try {
+            Path logDir = FMLPaths.GAMEDIR.get().resolve("logs");
+            File logFile = logDir.resolve("posestack-debugger.log").toFile();
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(logFile, false)), true);
+            writtenBytes = 0;
+            capReached = false;
+            writer.println("=== PoseStackDebugger session started at " +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " ===");
+            writer.flush();
+        } catch (IOException e) {
+            LOGGER.error("[PoseStackDebugger] Failed to create log file!", e);
+        }
+    }
+    
+    private static void writeRaw(String text) {
+        if (writer == null || capReached) {
+            return;
+        }
+        writer.print(text);
+        writer.flush();
+        writtenBytes += text.getBytes(StandardCharsets.UTF_8).length;
+        if (writtenBytes >= MAX_LOG_BYTES) {
+            capReached = true;
+            writer.println("=== LOG SIZE CAP (" + (MAX_LOG_BYTES / 1024 / 1024)
+                    + " MB) REACHED - further logging suppressed ===");
+            writer.flush();
+        }
+    }
+    
+    private static void logDeduped(String signature, String fullText) {
+        synchronized (LOCK) {
+            if (writer == null || capReached) {
+                return;
+            }
+            if (signature.equals(lastSignature)) {
+                duplicateCount++;
+                return;
+            }
+            if (duplicateCount > 0) {
+                writeRaw("[" + ts() + "] ... 上一条重复出现 " + duplicateCount + " 次，已折叠\n");
+                duplicateCount = 0;
+            }
+            lastSignature = signature;
+            writeRaw(fullText);
+        }
+    }
+    
+    private static String ts() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
+    }
   
-    public static void log(String message) {  
-        synchronized (LOCK) {  
-            if (writer != null) {  
-                writer.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")) + "] " + message);  
-                writer.flush();  
-            }  
-        }  
-    }  
-  
-    public static void log(String header, String body) {  
-        synchronized (LOCK) {  
-            if (writer != null) {  
-                writer.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")) + "] " + header);  
-                writer.println(body);  
-                writer.flush();  
-            }  
-        }  
+    public static void log(String message) {
+        logDeduped(message, "[" + ts() + "] " + message + "\n");
+    }
+    
+    public static void log(String header, String body) {
+        logDeduped(header + "\n" + body, "[" + ts() + "] " + header + "\n" + body + "\n");
     }  
 }

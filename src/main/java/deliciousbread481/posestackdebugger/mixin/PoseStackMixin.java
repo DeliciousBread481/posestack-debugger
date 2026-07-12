@@ -65,7 +65,7 @@ public abstract class PoseStackMixin {
                 ? "<none>" : posestackdebugger$owners.pop();
         String popper = posestackdebugger$firstModCaller();
   
-        if (posestackdebugger$depth < 0 || !popper.equals(matchedOwner)) {
+        if (posestackdebugger$depth < 0) {
             StringBuilder sb = new StringBuilder();
             sb.append("=== POSESTACK IMBALANCE DETECTED ===\n");
             sb.append("depth: ").append(posestackdebugger$depth).append("\n");
