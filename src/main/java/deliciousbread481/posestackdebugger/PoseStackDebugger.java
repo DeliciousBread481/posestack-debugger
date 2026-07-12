@@ -22,7 +22,8 @@ public class PoseStackDebugger {
     private static PrintWriter writer;  
     
     public static volatile int currentGuiDepth = 0;
-    private int snapshotDepth = 0;
+    public static volatile Object guiPoseStackInstance = null;
+    private int snapshotDepth = 0;  
   
     public PoseStackDebugger() {  
         LOGGER.info("[PoseStackDebugger] Loaded - monitoring pushPose/popPose balance.");  
@@ -32,6 +33,7 @@ public class PoseStackDebugger {
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onScreenRenderPre(ScreenEvent.Render.Pre e) {
+        guiPoseStackInstance = e.getGuiGraphics().pose();
         snapshotDepth = currentGuiDepth;
     }
     
