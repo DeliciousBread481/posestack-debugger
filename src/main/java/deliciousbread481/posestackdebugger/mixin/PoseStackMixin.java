@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;  
 import org.spongepowered.asm.mixin.injection.Inject;  
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;  
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayDeque;
   
@@ -115,7 +116,7 @@ public abstract class PoseStackMixin {
     }
     
     @Inject(method = "last", at = @At("HEAD"))
-    private void posestackdebugger$onLast(CallbackInfo ci) {
+    private void posestackdebugger$onLast(CallbackInfoReturnable<PoseStack.Pose> cir) {
         if (!posestackdebugger$shouldTrack()) return;
         if (posestackdebugger$depth < 0) {
             String reader = posestackdebugger$firstModCaller();
