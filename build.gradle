@@ -5,10 +5,22 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7.+'  
 }  
   
-version = '1.0.6'
+version = mod_version
 group = 'deliciousbread481.posestackdebugger'
 archivesBaseName = 'PoseStackDebugger'  
   
+processResources {
+    var replaceProperties = [
+        mod_version: mod_version,
+        mod_id     : mod_id
+    ]
+    inputs.properties replaceProperties
+    
+    filesMatching(['META-INF/mods.toml']) {
+        expand replaceProperties
+    }
+}
+
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)  
   
 minecraft {  
@@ -55,6 +67,7 @@ repositories {
 dependencies {  
     minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'  
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'  
+    compileOnly annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
 }  
   
 jar {  

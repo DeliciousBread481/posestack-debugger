@@ -3,8 +3,8 @@ loaderVersion = "[47,)"
 license = "MIT"  
   
 [[mods]]  
-modId = "posestackdebugger"  
-version = "1.0.0"  
+modId = "${mod_id}"  
+version="${mod_version}"
 displayName = "PoseStack Debugger"  
 authors = "deliciousbread481"  
 description = '''  
