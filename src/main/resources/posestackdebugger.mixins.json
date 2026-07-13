@@ -6,7 +6,8 @@
   "refmap": "posestackdebugger.refmap.json",  
   "client": [  
     "PoseStackMixin",
-    "ForgeHooksClientMixin"
+    "ForgeHooksClientMixin",
+    "RenderLayerMixin"
   ],  
   "injectors": {  
     "defaultRequire": 1

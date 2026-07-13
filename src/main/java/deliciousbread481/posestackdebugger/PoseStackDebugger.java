@@ -1,14 +1,18 @@
 package deliciousbread481.posestackdebugger;  
-  
+
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent; 
+import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.fml.common.Mod;  
 import net.minecraftforge.fml.loading.FMLPaths;  
 import org.slf4j.Logger;  
 import org.slf4j.LoggerFactory;  
-  
+
+import java.lang.reflect.Field;
+import java.util.Deque;
 import java.io.*;  
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;  
@@ -29,13 +33,36 @@ public class PoseStackDebugger {
     private static int duplicateCount = 0;
     public static volatile int currentGuiDepth = 0;
     public static volatile Object guiPoseStackInstance = null;
-    private int snapshotDepth = 0;  
+    private int snapshotDepth = 0;
+    
+    public static volatile String currentEntity = "<none>";
+    private int livingDepthSnapshot = 0;
+    private static Field POSE_DEQUE_FIELD;
   
     public PoseStackDebugger() {  
         LOGGER.info("[PoseStackDebugger] Loaded - monitoring pushPose/popPose balance.");  
         initLogFile();     
         MinecraftForge.EVENT_BUS.register(this);
     }  
+    
+    public static int depthOf(PoseStack poseStack) {
+        try {
+            if (POSE_DEQUE_FIELD == null) {
+                for (Field f : PoseStack.class.getDeclaredFields()) {
+                    if (Deque.class.isAssignableFrom(f.getType())) {
+                        f.setAccessible(true);
+                        POSE_DEQUE_FIELD = f;
+                        break;
+                    }
+                }
+            }
+            if (POSE_DEQUE_FIELD == null) return -1;
+            Object deque = POSE_DEQUE_FIELD.get(poseStack);
+            return (deque instanceof Deque) ? ((Deque<?>) deque).size() : -1;
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onScreenRenderPre(ScreenEvent.Render.Pre e) {
@@ -52,6 +79,23 @@ public class PoseStackDebugger {
                             + " 的 renderWithTooltip 导致深度变化: "
                             + snapshotDepth + " -> " + now + "\n"
                             + "（元凶是该 Screen 本体或包裹它的 mixin）\n");
+        }
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onRenderLivingPre(RenderLivingEvent.Pre<?, ?> e) {
+        livingDepthSnapshot = depthOf(e.getPoseStack());
+        currentEntity = e.getEntity().getType().toString();
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onRenderLivingPost(RenderLivingEvent.Post<?, ?> e) {
+        int now = depthOf(e.getPoseStack());
+        if (now != livingDepthSnapshot) {
+            log("LIVING EVENT IMBALANCE",
+                    "实体 " + e.getEntity().getType()
+                            + " 渲染期间深度变化: " + livingDepthSnapshot + " -> " + now
+                            + "\n（元凶是该实体的某个渲染层或 RenderLivingEvent 监听器）\n");
         }
     }
   
