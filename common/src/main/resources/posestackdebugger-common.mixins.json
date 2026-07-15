@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "deliciousbread481.posestackdebugger.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PoseStackMixin",
+    "RenderLayerMixin",
+    "ScreenMixin",
+    "LivingEntityRenderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

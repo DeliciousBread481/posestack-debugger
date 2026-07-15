@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "posestackdebugger",
+  "version": "${version}",
+  "name": "PoseStack Debugger",
+  "description": "Monitors PoseStack pushPose/popPose calls to detect unbalanced usage and identify the offending mod.",
+  "authors": ["deliciousbread481"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "deliciousbread481.posestackdebugger.fabric.PoseStackDebuggerFabricClient"
+    ]
+  },
+  "mixins": [
+    "posestackdebugger-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "architectury": ">=13.0.0"
+  }
+}

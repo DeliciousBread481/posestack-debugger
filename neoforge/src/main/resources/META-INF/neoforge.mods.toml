@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "posestackdebugger"
+version = "${version}"
+displayName = "PoseStack Debugger"
+authors = "deliciousbread481"
+description = '''
+Monitors PoseStack pushPose/popPose calls to detect unbalanced usage and identify the offending mod.
+'''
+
+[[mixins]]
+config = "posestackdebugger-common.mixins.json"
+
+[[dependencies.posestackdebugger]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.posestackdebugger]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.posestackdebugger]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.0,)"
+ordering = "AFTER"
+side = "CLIENT"
