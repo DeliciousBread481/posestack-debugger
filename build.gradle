@@ -1,6 +1,7 @@
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+    id "architectury-plugin" version "3.4.164"
+    id "dev.architectury.loom" version "1.7.435" apply false
+    id "com.github.johnrengelman.shadow" version "8.1.1" apply false
 }
 
 architectury {
@@ -32,6 +33,10 @@ allprojects {
     group = project.maven_group
     
     repositories {
+        maven { url "https://maven.neoforged.net/releases" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.fabricmc.net/" }
+        mavenCentral()
     }
     
     tasks.withType(JavaCompile).configureEach {
