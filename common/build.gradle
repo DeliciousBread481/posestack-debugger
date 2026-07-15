@@ -1,0 +1,21 @@
+plugins {
+    id "java-library"
+    id "dev.architectury.loom-no-remap"
+}
+
+architectury {
+    common(rootProject.enabled_platforms.split(","))
+}
+
+base {
+    archivesName = "${rootProject.mod_id}-common"
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+
+    compileOnly(annotationProcessor(
+            "io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"
+    ))
+}
