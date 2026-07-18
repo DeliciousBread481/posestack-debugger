@@ -79,6 +79,31 @@ public final class PoseStackDebugger {
         }
     }
 
+    public static List<String> leakedOwnersOf(PoseStack poseStack, int count) {
+        if (poseStack instanceof StackDepthTracker tracker) {
+            return tracker.posestackdebugger$snapshotOwners(count);
+        }
+        return List.of();
+    }
+
+    public static String formatLeakedOwners(PoseStack poseStack, int before, int after) {
+        int leaked = after - before;
+        if (leaked <= 0) {
+            return "";
+        }
+        List<String> owners = leakedOwnersOf(poseStack, leaked);
+        if (owners.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append("未配平的 pushPose 调用点（栈顶在前，共 ")
+                .append(leaked).append(" 层）:\n");
+        for (String owner : owners) {
+            builder.append("  >>> ").append(owner).append("\n");
+        }
+        return builder.toString();
+    }
+
     public static int guiDepthOf(Matrix3x2fStack stack) {
         try {
             if (guiIndexField == null) {
@@ -140,7 +165,8 @@ public final class PoseStackDebugger {
             log("LIVING EVENT IMBALANCE",
                     "实体 " + entityName(renderState)
                             + " 渲染期间深度变化: " + snapshot.depth() + " -> " + after
-                            + "\n（元凶是该实体的某个渲染层或实体渲染回调）\n");
+                            + "\n（元凶是该实体的某个渲染层或实体渲染回调）\n"
+                            + formatLeakedOwners(poseStack, snapshot.depth(), after));
         }
 
         Deque<LivingSnapshot> remaining = LIVING_DEPTHS.get();

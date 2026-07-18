@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(PoseStack.class)
 public abstract class PoseStackMixin implements StackDepthTracker {
@@ -23,6 +25,21 @@ public abstract class PoseStackMixin implements StackDepthTracker {
     @Override
     public int posestackdebugger$getDepth() {
         return posestackdebugger$depth;
+    }
+
+    @Override
+    public List<String> posestackdebugger$snapshotOwners(int count) {
+        List<String> result = new ArrayList<>();
+        if (count <= 0) {
+            return result;
+        }
+        for (String owner : posestackdebugger$owners) {
+            if (result.size() >= count) {
+                break;
+            }
+            result.add(owner);
+        }
+        return result;
     }
 
     @Unique

@@ -2,9 +2,9 @@ name: Build PoseStack Debugger
 
 on:
   push:
-    branches: [main, master]
+    branches: [ 26.1 ]
   pull_request:
-    branches: [main, master]
+    branches: [ 26.1 ]
   workflow_dispatch:
 
 jobs:

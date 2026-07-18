@@ -34,21 +34,35 @@ public abstract class RenderLayerMixin {
             Operation<Void> original
     ) {
         int before = PoseStackDebugger.depthOf(poseStack);
-        original.call(
-                layer,
-                poseStack,
-                submitNodeCollector,
-                light,
-                renderState,
-                yRot,
-                xRot
-        );
-        int after = PoseStackDebugger.depthOf(poseStack);
-        if (before != after) {
-            PoseStackDebugger.log("LAYER IMBALANCE",
-                    "渲染层 " + layer.getClass().getName()
-                            + " 导致深度变化: " + before + " -> " + after
-                            + "，实体=" + renderState.entityType + "\n");
+        Throwable thrown = null;
+        try {
+            original.call(
+                    layer,
+                    poseStack,
+                    submitNodeCollector,
+                    light,
+                    renderState,
+                    yRot,
+                    xRot
+            );
+        } catch (Throwable throwable) {
+            thrown = throwable;
+            throw throwable;
+        } finally {
+            int after = PoseStackDebugger.depthOf(poseStack);
+            if (before != after || thrown != null) {
+                StringBuilder builder = new StringBuilder();
+                builder.append("渲染层 ").append(layer.getClass().getName())
+                        .append(" 导致深度变化: ").append(before).append(" -> ").append(after)
+                        .append("，实体=").append(renderState.entityType).append("\n");
+                if (thrown != null) {
+                    builder.append("渲染层抛出异常: ")
+                            .append(thrown.getClass().getName())
+                            .append(": ").append(thrown.getMessage()).append("\n");
+                }
+                builder.append(PoseStackDebugger.formatLeakedOwners(poseStack, before, after));
+                PoseStackDebugger.log("LAYER IMBALANCE", builder.toString());
+            }
         }
     }
 }
