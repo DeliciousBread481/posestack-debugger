@@ -39,7 +39,7 @@ public final class PoseStackDebugger {
 
     private PoseStackDebugger() {
     }
-    
+
     public static void init() {
         if (initialized) return;
         initialized = true;

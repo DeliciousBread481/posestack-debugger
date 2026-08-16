@@ -14,7 +14,7 @@ public abstract class ScreenMixin {
     private void posestackdebugger$onRenderHead(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         PoseStackDebugger.onScreenRenderPre(guiGraphics.pose());
     }
-    
+
     @Inject(method = "render", at = @At("TAIL"))
     private void posestackdebugger$onRenderTail(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         PoseStackDebugger.onScreenRenderPost(this);

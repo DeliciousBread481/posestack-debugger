@@ -106,7 +106,7 @@ public abstract class PoseStackMixin {
             sb.append("被弹层的 push 调用方: ").append(matchedOwner).append("\n");
             sb.append("Stack trace:\n");
             sb.append(posestackdebugger$collectTrace());
-            
+
             PoseStackDebugger.log("UNDERFLOW", sb.toString());
 
             posestackdebugger$depth = 0;

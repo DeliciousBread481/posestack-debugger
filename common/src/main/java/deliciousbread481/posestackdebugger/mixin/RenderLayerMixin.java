@@ -7,7 +7,10 @@ import deliciousbread481.posestackdebugger.PoseStackDebugger;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -26,10 +29,21 @@ public abstract class RenderLayerMixin {
                 limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
         int after = PoseStackDebugger.depthOf(pose);
         if (before != after) {
-            PoseStackDebugger.log("LAYER IMBALANCE",
-                    "渲染层 " + layer.getClass().getName()
-                            + " 导致深度变化: " + before + " -> " + after
-                            + "，实体=" + entity.getClass().getName() + "\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append("渲染层 ").append(layer.getClass().getName())
+              .append(" 导致深度变化: ").append(before).append(" -> ").append(after)
+              .append("，实体=").append(entity.getClass().getName());
+            if (entity instanceof LivingEntity living) {
+                sb.append("\n  主手: ").append(posestackdebugger$describeItem(living.getMainHandItem()));
+                sb.append("\n  副手: ").append(posestackdebugger$describeItem(living.getOffhandItem()));
+            }
+            sb.append("\n");
+            PoseStackDebugger.log("LAYER IMBALANCE", sb.toString());
         }
+    }
+
+    private static String posestackdebugger$describeItem(ItemStack stack) {
+        if (stack.isEmpty()) return "<空>";
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 }

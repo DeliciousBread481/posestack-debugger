@@ -7,7 +7,8 @@
     "PoseStackMixin",
     "RenderLayerMixin",
     "ScreenMixin",
-    "LivingEntityRenderMixin"
+    "ItemRendererProbeMixin",
+    "BewlrProbeMixin"
   ],
   "injectors": {
     "defaultRequire": 1
