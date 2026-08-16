@@ -66,7 +66,16 @@ public abstract class ItemInHandLayerProbeMixin {
     private void posestackdebugger$wrapPush(PoseStack instance, Operation<Void> original) {
         ArrayDeque<int[]> stack = posestackdebugger$counters.get();
         if (!stack.isEmpty()) stack.peek()[1]++;
+        int before = PoseStackDebugger.depthOf(instance);
+        PoseStackDebugger.armCapture();
         original.call(instance);
+        PoseStackDebugger.disarmCapture();
+        int after = PoseStackDebugger.depthOf(instance);
+        if (after - before != 1) {
+            PoseStackDebugger.log("PUSH ABNORMAL",
+                    "ItemInHandLayer 内一次 pushPose() 真实深度变化 " + before + " -> " + after
+                            + "（期望 +1）\n" + PoseStackDebugger.dumpCaptured());
+        }
     }
 
     @WrapOperation(
@@ -76,17 +85,15 @@ public abstract class ItemInHandLayerProbeMixin {
     private void posestackdebugger$wrapPop(PoseStack instance, Operation<Void> original) {
         ArrayDeque<int[]> stack = posestackdebugger$counters.get();
         if (!stack.isEmpty()) stack.peek()[2]++;
-        StringBuilder sb = new StringBuilder("ItemInHandLayer.popPose() 被调用，调用链：\n");
-        for (StackTraceElement e : new Throwable().getStackTrace()) {
-            String c = e.getClassName();
-            String m = e.getMethodName();
-            boolean suspect = (m.contains("redirect$") || m.contains("wrapOperation")
-                    || m.contains("handler$") || m.contains("$mixinextras$"))
-                    && !c.startsWith("deliciousbread481.posestackdebugger.");
-            sb.append(suspect ? "  >>> " : "      ").append(e)
-              .append(suspect ? "   <<< SUSPECT" : "").append('\n');
-        }
-        PoseStackDebugger.log("ITEMINHAND POP", sb.toString());
+        int before = PoseStackDebugger.depthOf(instance);
+        PoseStackDebugger.armCapture();
         original.call(instance);
+        PoseStackDebugger.disarmCapture();
+        int after = PoseStackDebugger.depthOf(instance);
+        if (after - before != -1) {
+            PoseStackDebugger.log("POP ABNORMAL",
+                    "ItemInHandLayer 内一次 popPose() 真实深度变化 " + before + " -> " + after
+                            + "（期望 -1）\n" + PoseStackDebugger.dumpCaptured());
+        }
     }
 }

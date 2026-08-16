@@ -152,4 +152,45 @@ public final class PoseStackDebugger {
     public static void log(String header, String body) {
         logDeduped(header + "\n" + body, "[" + ts() + "] " + header + "\n" + body + "\n");
     }
+
+    private static final ThreadLocal<Boolean> CAPTURE_ARMED = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<java.util.List<StackTraceElement[]>> CAPTURED =
+            ThreadLocal.withInitial(java.util.ArrayList::new);
+
+    public static void armCapture() {
+        CAPTURE_ARMED.set(true);
+        CAPTURED.get().clear();
+    }
+
+    public static void disarmCapture() {
+        CAPTURE_ARMED.set(false);
+    }
+
+    public static boolean isCaptureArmed() {
+        return CAPTURE_ARMED.get();
+    }
+
+    public static void capture(StackTraceElement[] trace) {
+        CAPTURED.get().add(trace);
+    }
+
+    public static String dumpCaptured() {
+        java.util.List<StackTraceElement[]> list = CAPTURED.get();
+        if (list.isEmpty()) return "  （original.call() 期间没有任何真实 push/pop 触发 —— 该操作被 mod 完全吞掉了）\n";
+        StringBuilder sb = new StringBuilder();
+        int n = 1;
+        for (StackTraceElement[] trace : list) {
+            sb.append("  --- 实际操作 #").append(n++).append(" ---\n");
+            for (StackTraceElement e : trace) {
+                String c = e.getClassName();
+                String m = e.getMethodName();
+                boolean suspect = (m.contains("redirect$") || m.contains("wrapOperation")
+                        || m.contains("handler$") || m.contains("modify"))
+                        && !c.startsWith("deliciousbread481.posestackdebugger.");
+                sb.append(suspect ? "    >>> " : "        ").append(e)
+                  .append(suspect ? "   <<< SUSPECT" : "").append('\n');
+            }
+        }
+        return sb.toString();
+    }
 }

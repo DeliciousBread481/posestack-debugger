@@ -101,6 +101,9 @@ public abstract class PoseStackMixin implements deliciousbread481.posestackdebug
     @Inject(method = "pushPose", at = @At("HEAD"))
     private void posestackdebugger$onPushPose(CallbackInfo ci) {
         if (!posestackdebugger$shouldTrack()) return;
+        if (PoseStackDebugger.isCaptureArmed()) {
+            PoseStackDebugger.capture(Thread.currentThread().getStackTrace());
+        }
         posestackdebugger$depth++;
         posestackdebugger$owners.push(Thread.currentThread().getStackTrace());
         if (posestackdebugger$isGuiInstance()) {
@@ -111,6 +114,9 @@ public abstract class PoseStackMixin implements deliciousbread481.posestackdebug
     @Inject(method = "popPose", at = @At("HEAD"))
     private void posestackdebugger$onPopPose(CallbackInfo ci) {
         if (!posestackdebugger$shouldTrack()) return;
+        if (PoseStackDebugger.isCaptureArmed()) {
+            PoseStackDebugger.capture(Thread.currentThread().getStackTrace());
+        }
         posestackdebugger$depth--;
         if (posestackdebugger$isGuiInstance()) {
             PoseStackDebugger.currentGuiDepth = posestackdebugger$depth;
