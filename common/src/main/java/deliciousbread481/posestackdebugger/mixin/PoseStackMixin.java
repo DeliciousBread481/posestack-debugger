@@ -12,13 +12,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayDeque;
 
 @Mixin(PoseStack.class)
-public abstract class PoseStackMixin {
+public abstract class PoseStackMixin implements deliciousbread481.posestackdebugger.OwnerTracked {
 
     @Unique
     private int posestackdebugger$depth = 0;
 
     @Unique
-    private final ArrayDeque<String> posestackdebugger$owners = new ArrayDeque<>();
+    private final ArrayDeque<StackTraceElement[]> posestackdebugger$owners = new ArrayDeque<>();
 
     @Unique
     private boolean posestackdebugger$shouldTrack() {
@@ -48,15 +48,39 @@ public abstract class PoseStackMixin {
     }
 
     @Unique
-    private String posestackdebugger$firstModCaller() {
-        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+    private boolean posestackdebugger$looksLikeMixinHandler(String method) {
+        return method.contains("handler$")
+                || method.contains("wrapOperation")
+                || method.contains("wrapMethod")
+                || method.startsWith("redirect$")
+                || method.startsWith("modify")
+                || method.contains("$mixinextras$")
+                || method.contains("$zzb")
+                || method.contains("$md$");
+    }
+
+    @Unique
+    private boolean posestackdebugger$isSelfFrame(StackTraceElement e) {
+        return e.getMethodName().contains("posestackdebugger")
+                || e.getClassName().startsWith("deliciousbread481.posestackdebugger.");
+    }
+
+    @Unique
+    private String posestackdebugger$firstModCaller(StackTraceElement[] trace) {
         for (StackTraceElement e : trace) {
+            if (posestackdebugger$isSelfFrame(e)) continue;
             String c = e.getClassName();
-            if (!posestackdebugger$isEngineClass(c)) {
-                return c + "#" + e.getMethodName() + ":" + e.getLineNumber();
+            String m = e.getMethodName();
+            if (!posestackdebugger$isEngineClass(c) || posestackdebugger$looksLikeMixinHandler(m)) {
+                return c + "#" + m + ":" + e.getLineNumber();
             }
         }
         return "<vanilla/loader>";
+    }
+
+    @Unique
+    private String posestackdebugger$firstModCaller() {
+        return posestackdebugger$firstModCaller(Thread.currentThread().getStackTrace());
     }
 
     @Unique
@@ -78,7 +102,7 @@ public abstract class PoseStackMixin {
     private void posestackdebugger$onPushPose(CallbackInfo ci) {
         if (!posestackdebugger$shouldTrack()) return;
         posestackdebugger$depth++;
-        posestackdebugger$owners.push(posestackdebugger$firstModCaller());
+        posestackdebugger$owners.push(Thread.currentThread().getStackTrace());
         if (posestackdebugger$isGuiInstance()) {
             PoseStackDebugger.currentGuiDepth = posestackdebugger$depth;
         }
@@ -92,8 +116,10 @@ public abstract class PoseStackMixin {
             PoseStackDebugger.currentGuiDepth = posestackdebugger$depth;
         }
 
-        String matchedOwner = posestackdebugger$owners.isEmpty()
-                ? "<none>" : posestackdebugger$owners.pop();
+        StackTraceElement[] matchedTrace = posestackdebugger$owners.isEmpty()
+                ? null : posestackdebugger$owners.pop();
+        String matchedOwner = matchedTrace == null
+                ? "<none>" : posestackdebugger$firstModCaller(matchedTrace);
         String popper = posestackdebugger$firstModCaller();
 
         if (posestackdebugger$depth < 0) {
@@ -148,5 +174,23 @@ public abstract class PoseStackMixin {
 
             PoseStackDebugger.log("OVERFLOW WARNING", sb.toString());
         }
+    }
+
+    @Override
+    public java.util.List<String> posestackdebugger$leakedOwners(int count) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        int i = 0;
+        for (StackTraceElement[] trace : posestackdebugger$owners) {
+            if (i++ >= count) break;
+            StringBuilder sb = new StringBuilder("元凶: ").append(posestackdebugger$firstModCaller(trace));
+            for (StackTraceElement e : trace) {
+                if (posestackdebugger$isSelfFrame(e)) continue;
+                boolean suspect = !posestackdebugger$isEngineClass(e.getClassName())
+                        || posestackdebugger$looksLikeMixinHandler(e.getMethodName());
+                sb.append("\n        ").append(suspect ? ">>> " : "    ").append(e);
+            }
+            out.add(sb.toString());
+        }
+        return out;
     }
 }

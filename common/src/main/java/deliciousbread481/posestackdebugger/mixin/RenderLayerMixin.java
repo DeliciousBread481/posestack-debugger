@@ -37,6 +37,16 @@ public abstract class RenderLayerMixin {
                 sb.append("\n  主手: ").append(posestackdebugger$describeItem(living.getMainHandItem()));
                 sb.append("\n  副手: ").append(posestackdebugger$describeItem(living.getOffhandItem()));
             }
+
+            int leaked = after - before;
+            if (leaked > 0 && pose instanceof deliciousbread481.posestackdebugger.OwnerTracked tracked) {
+                sb.append("\n  === 未配对的 push 调用方(").append(leaked).append(" 条,最近在前)===");
+                int n = 1;
+                for (String owner : tracked.posestackdebugger$leakedOwners(leaked)) {
+                    sb.append("\n    #").append(n++).append("  ").append(owner);
+                }
+            }
+
             sb.append("\n");
             PoseStackDebugger.log("LAYER IMBALANCE", sb.toString());
         }
